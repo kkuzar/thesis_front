@@ -25,10 +25,12 @@ import {storage} from "../firebase";
 
 import Copyright from "../components/Copyright";
 import {useAuthContext} from "../contexts/AuthContext";
-import {useState} from "react";
+import {useContext, useState} from "react";
 import {ref, listAll, getDownloadURL} from "firebase/storage"
 import ListStorage from "../components/ListStorage";
 import {Card, CardContent, CardHeader} from "@mui/material";
+import RenderCanvas from "../components/RenderCanvas";
+import {DataContext} from "../contexts/ModelData";
 
 const drawerWidth: number = 240;
 
@@ -90,9 +92,16 @@ export default function Dashboard() {
     };
     const {currentUser, logout} = useAuthContext()
 
+    const [listLink, setListLink] = useState<String>("")
+
+    const updateLink = (link:String) => {
+        console.log("update from dashboard:", link)
+        setListLink(link);
+    }
 
     return (
         <ThemeProvider theme={defaultTheme}>
+            {/* @ts-ignore */}
             <Box sx={{display: 'flex'}}>
                 <CssBaseline/>
                 <AppBar position="absolute" open={open}>
@@ -173,7 +182,7 @@ export default function Dashboard() {
                 >
                     <Toolbar/>
                     <Container maxWidth="lg" sx={{mt: 4, mb: 4}}>
-                        <Grid container spacing={3}>
+                        <Grid container spacing={3} >
                             {/* Chart */}
                             <Grid item xs={12} md={8} lg={8}>
                                 <Paper
@@ -181,20 +190,22 @@ export default function Dashboard() {
                                         p: 2,
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        height: 240,
+                                        height: '400px',
+                                        minHeight: '600px'
                                     }}
                                 >
-                                    {/*<Chart />*/}
+                                    <RenderCanvas url={ listLink }/>
                                 </Paper>
                             </Grid>
-                            {/* Recent Deposits */}
+
                             <Grid item xs={12} md={4} lg={4}>
                                 <Card
                                     sx={{
                                         p: 2,
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        height: 240,
+                                        height: '400px',
+                                        minHeight: '600px'
                                     }}
                                 >
                                     <CardHeader
@@ -202,7 +213,7 @@ export default function Dashboard() {
                                         subheader="3D scans upload from phone app."
                                     />
                                     <CardContent>
-                                        <ListStorage/>
+                                        <ListStorage onSendLink={updateLink} />
                                     </CardContent>
 
                                 </Card>

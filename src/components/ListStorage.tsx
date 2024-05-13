@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import {listAll, ref, getDownloadURL} from 'firebase/storage';
 import {storage} from '../firebase';
 import {Box, CircularProgress, List} from "@mui/material";
@@ -8,22 +8,30 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import ListItemText from "@mui/material/ListItemText";
 import {useAuthState} from 'react-firebase-hooks/auth';
 import {auth} from '../firebase';
+import {DataContext} from "../contexts/ModelData";
 
 
-const StorageFilesList = () => {
+
+// @ts-ignore
+const StorageFilesList = ({onSendLink}) => {
     // const [files, setFiles] = useState([]);
     // const [loading, setLoading] = useState(true);
 
     const [files, setFiles] = useState<string[]>([]);
     const [user, loading, error] = useAuthState(auth);
 
+    const updateLink = (link:String) => {
+        console.log("send from list:", link)
+        onSendLink(link)
+    }
+
     useEffect(() => {
         if (user) {
             const listFiles = async () => {
-                const userFolderRef = ref(storage, `uploads/${user.uid}`);
+                const userFolderRef = ref(storage, `glb/${user.uid}`);
                 try {
                     const result = await listAll(userFolderRef);
-                    const fileUrls = await Promise.all(result.items.map(item => `File: ${item.fullPath}`));
+                    const fileUrls = await Promise.all(result.items.map(item => `${item.fullPath}`));
                     setFiles(fileUrls);
                 } catch (error) {
                     console.error("Error listing files:", error);
@@ -36,7 +44,9 @@ const StorageFilesList = () => {
     }, [user]);
 
     if (loading) {
+
         return (
+            // @ts-ignore
             <Box sx={{display: 'flex'}}>
                 <CircularProgress/>
             </Box>
@@ -58,8 +68,8 @@ const StorageFilesList = () => {
                     files.length > 0 ? (
                         <>
                             {files.map((url, index) => (
-                                <ListItemButton key={index}>
-                                    {url.split('/').pop()}
+                                <ListItemButton key={index} onClick={()=> updateLink(url)} >
+                                    <ListItemText primary={url.split('/').pop()} />
                                 </ListItemButton>
                             ))}
                         </>
